@@ -81,6 +81,7 @@ public class RedisUtils {
 
     /**
      * 分布式锁，解锁 查询锁和解锁放在同一个原子性操作上。
+     *
      * @param key
      * @param value
      * @return
@@ -101,6 +102,59 @@ public class RedisUtils {
             return true;
         }
         return false;
+    }
+
+
+    /**
+     * 递增
+     *
+     * @param key   键
+     * @param delta 要增加几(大于0)
+     * @return Long
+     */
+    public static Long incr(String key, Long delta) {
+        if (delta < 0) {
+            throw new RuntimeException("递增因子必须大于0");
+        }
+        return redisTemplate.opsForValue().increment(key, delta);
+    }
+
+    /**
+     * 递减
+     *
+     * @param key   键
+     * @param delta 要减少几
+     * @return Long
+     */
+    public static Long decr(String key, Long delta) {
+        if (delta < 0) {
+            throw new RuntimeException("递减因子必须大于0");
+        }
+        return redisTemplate.opsForValue().increment(key, -delta);
+    }
+
+
+    /**
+     * 扣减库存，查询和扣减操作在同一个原子性操作上。
+     *
+     * @param key    商品Id
+     * @param number 扣减商品数量
+     * @return
+     */
+    public static Long orderStock(String orderId, Integer number) {
+        // 定义lua脚本
+        String script =
+                "local num = tonumber(ARGV[1]);" +
+                        "local stock = tonumber(redis.call('get', KEYS[1]));" +
+                        "if(stock >= num) then " +
+                        "   return redis.call('incrby', KEYS[1], 0-num); " +
+                        "end; " +
+                        "return -1;";
+
+        RedisScript<Long> redisScript = new DefaultRedisScript<>(script, Long.class);
+        // 执行Lua脚本，传入脚本以及对应参数
+        Long stockNumber = redisTemplate.execute(redisScript, Collections.singletonList(orderId), number);
+        return stockNumber;
     }
 
 }
