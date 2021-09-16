@@ -2,8 +2,12 @@ package cc.honghuan.redis.tool.utils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author honghuan.Liu
@@ -57,4 +61,46 @@ public class RedisUtils {
             return false;
         }
     }
+
+    /**
+     * 设置key-value和过期时间 原子性操作
+     *
+     * @param key     键
+     * @param value   值
+     * @param timeout 超时时间
+     * @return true成功 false失败
+     */
+    public static Boolean setnx(String key, Object value, Long timeout) {
+        try {
+            return redisTemplate.opsForValue().setIfAbsent(key, value, timeout, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * 分布式锁，解锁 查询锁和解锁放在同一个原子性操作上。
+     * @param key
+     * @param value
+     * @return
+     */
+    public static Boolean unLock(String key, String value) {
+        // 定义lua脚本
+        String script =
+                "if redis.call('get',KEYS[1]) == ARGV[1] then" +
+                        "   return redis.call('del',KEYS[1]) " +
+                        "else" +
+                        "   return 0 " +
+                        "end";
+
+        RedisScript redisScript = new DefaultRedisScript<>(script, Long.class);
+        // 执行Lua脚本，传入脚本以及对应参数
+        Object result = redisTemplate.execute(redisScript, Collections.singletonList(key), value);
+        if ("1".equals(result.toString())) {
+            return true;
+        }
+        return false;
+    }
+
 }
