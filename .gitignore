@@ -1,0 +1,35 @@
+bin/
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+target
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+mvn*
+/test/
+
+### NetBeans ###
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/.nb-gradle/
+
+/.mvn/
+
+#Angular commits
+node_modules/
+package-lock.json
+package.json
