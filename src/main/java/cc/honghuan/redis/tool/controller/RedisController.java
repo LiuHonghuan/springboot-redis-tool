@@ -33,17 +33,14 @@ public class RedisController {
         log.info("init stock result {}", stock);
     }
 
-
-
     /**
      * 限流
      *
      * @return
      */
-    @ApiLimit(key = "test_limit_api",period = 60, count = 10)
+    @ApiLimit(key = "test_limit_api", period = 60, count = 10)
     @GetMapping("/test")
     public String test() {
-
         return "ok";
     }
 

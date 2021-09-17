@@ -158,7 +158,7 @@ public class RedisUtils {
     }
 
     /**
-     * 令牌桶算法，maxCount相当于桶全部的令牌，period
+     * 令牌桶算法，maxCount相当于桶全部的令牌，period 生成令牌的速率
      *
      * @param key      锁key
      * @param maxCount 最大访问次数
@@ -179,11 +179,11 @@ public class RedisUtils {
                         "end; " +
                         "return c;";
 
-        RedisScript<Number> redisScript = new DefaultRedisScript<>(script, Number.class);
+        RedisScript<Long> redisScript = new DefaultRedisScript<>(script, Long.class);
         // 执行Lua脚本，传入脚本以及对应参数
-        Number count = redisTemplate.execute(redisScript, Collections.singletonList("limit_rate:" + key), maxCount, period);
+        Long count = redisTemplate.execute(redisScript, Collections.singletonList("limit_rate:" + key), maxCount, period);
         if (null != count && count.intValue() <= maxCount) {
-            log.info("第 {} 访问key为 {} 的接口");
+            log.info("第 {} 访问key为 {} 的接口", count, key);
             return true;
         }
         return false;
