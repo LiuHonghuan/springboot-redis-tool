@@ -170,7 +170,7 @@ public class RedisUtils {
         String script =
                 "local c;" +
                         "c = redis.call('get',KEYS[1]);" +
-                        "if c and tonumber(c) > tonumber(ARGV[1]) then" +
+                        "if c and tonumber(c) >= tonumber(ARGV[1]) then" +
                         "   return c;" +
                         "end; " +
                         "c = redis.call('incr',KEYS[1]);" +
