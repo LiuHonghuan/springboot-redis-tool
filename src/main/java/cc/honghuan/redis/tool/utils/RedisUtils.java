@@ -157,4 +157,35 @@ public class RedisUtils {
         return stockNumber;
     }
 
+    /**
+     * 令牌桶算法，maxCount相当于桶全部的令牌，period
+     *
+     * @param key      锁key
+     * @param maxCount 最大访问次数
+     * @param period   时间，单位秒
+     * @return
+     */
+    public static Boolean limitRate(String key, Integer maxCount, Integer period) {
+        // 定义lua脚本
+        String script =
+                "local c;" +
+                        "c = redis.call('get',KEYS[1]);" +
+                        "if c and tonumber(c) > tonumber(ARGV[1]) then" +
+                        "   return c;" +
+                        "end; " +
+                        "c = redis.call('incr',KEYS[1]);" +
+                        "if tonumber(c) == 1 then " +
+                        "   redis.call('expire',KEYS[1],ARGV[2])" +
+                        "end; " +
+                        "return c;";
+
+        RedisScript<Number> redisScript = new DefaultRedisScript<>(script, Number.class);
+        // 执行Lua脚本，传入脚本以及对应参数
+        Number count = redisTemplate.execute(redisScript, Collections.singletonList("limit_rate:" + key), maxCount, period);
+        if (null != count && count.intValue() <= maxCount) {
+            log.info("第 {} 访问key为 {} 的接口");
+            return true;
+        }
+        return false;
+    }
 }

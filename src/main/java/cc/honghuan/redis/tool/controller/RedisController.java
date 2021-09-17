@@ -1,5 +1,6 @@
 package cc.honghuan.redis.tool.controller;
 
+import cc.honghuan.redis.tool.anotation.ApiLimit;
 import cc.honghuan.redis.tool.utils.RedisUtils;
 import cc.honghuan.redis.tool.utils.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -32,8 +33,23 @@ public class RedisController {
         log.info("init stock result {}", stock);
     }
 
+
+
+    /**
+     * 限流
+     *
+     * @return
+     */
+    @ApiLimit(key = "test_limit_api",period = 60, count = 10)
+    @GetMapping("/test")
+    public String test() {
+
+        return "ok";
+    }
+
     /**
      * 秒杀库存超卖
+     *
      * @return
      */
     @GetMapping("/seckillStock")
@@ -51,6 +67,7 @@ public class RedisController {
 
     /**
      * 分布式锁
+     *
      * @return
      */
     @GetMapping("/distributed/lock")
